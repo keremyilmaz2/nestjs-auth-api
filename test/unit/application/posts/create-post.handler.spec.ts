@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Test, TestingModule } from '@nestjs/testing';
 import { CreatePostHandler } from '@application/posts/commands/create-post/create-post.handler';
 import { CreatePostCommand } from '@application/posts/commands/create-post/create-post.command';
@@ -23,44 +24,44 @@ describe('CreatePostHandler', () => {
   beforeEach(async () => {
     mockUnitOfWork = {
       userRepository: {
-        findById: jest.fn(),
-        emailExists: jest.fn(),
-        usernameExists: jest.fn(),
-        create: jest.fn(),
-        findByEmail: jest.fn(),
-        findByUsername: jest.fn(),
-        findByRefreshToken: jest.fn(),
-        findByRole: jest.fn(),
-        findActiveUsers: jest.fn(),
-        findActiveUsersPaginated: jest.fn(),
-        findAll: jest.fn(),
-        findAllPaginated: jest.fn(),
-        update: jest.fn(),
-        delete: jest.fn(),
-        exists: jest.fn(),
-        count: jest.fn(),
+        findById: jest.fn() as any,
+        emailExists: jest.fn() as any,
+        usernameExists: jest.fn() as any,
+        create: jest.fn() as any,
+        findByEmail: jest.fn() as any,
+        findByUsername: jest.fn() as any,
+        findByRefreshToken: jest.fn() as any,
+        findByRole: jest.fn() as any,
+        findActiveUsers: jest.fn() as any,
+        findActiveUsersPaginated: jest.fn() as any,
+        findAll: jest.fn() as any,
+        findAllPaginated: jest.fn() as any,
+        update: jest.fn() as any,
+        delete: jest.fn() as any,
+        exists: jest.fn() as any,
+        count: jest.fn() as any,
       },
       postRepository: {
-        create: jest.fn(),
-        findById: jest.fn(),
-        findAll: jest.fn(),
-        findAllPaginated: jest.fn(),
-        update: jest.fn(),
-        delete: jest.fn(),
-        exists: jest.fn(),
-        count: jest.fn(),
-        findByAuthorId: jest.fn(),
-        findByAuthorIdPaginated: jest.fn(),
-        findPublishedPosts: jest.fn(),
-        findPublishedPostsPaginated: jest.fn(),
-        findByTitle: jest.fn(),
-        searchByContent: jest.fn(),
+        create: jest.fn() as any,
+        findById: jest.fn() as any,
+        findAll: jest.fn() as any,
+        findAllPaginated: jest.fn() as any,
+        update: jest.fn() as any,
+        delete: jest.fn() as any,
+        exists: jest.fn() as any,
+        count: jest.fn() as any,
+        findByAuthorId: jest.fn() as any,
+        findByAuthorIdPaginated: jest.fn() as any,
+        findPublishedPosts: jest.fn() as any,
+        findPublishedPostsPaginated: jest.fn() as any,
+        findByTitle: jest.fn() as any,
+        searchByContent: jest.fn() as any,
       },
       beginTransaction: jest.fn(),
       commit: jest.fn(),
       rollback: jest.fn(),
       executeInTransaction: jest.fn().mockImplementation(async (work) => work()),
-    } as unknown as jest.Mocked<IUnitOfWork>;
+    } as any;
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -85,8 +86,8 @@ describe('CreatePostHandler', () => {
     );
 
     it('should successfully create a post', async () => {
-      mockUnitOfWork.userRepository.findById.mockResolvedValue(mockUser);
-      mockUnitOfWork.postRepository.create.mockImplementation(async (post) => post);
+      (mockUnitOfWork.userRepository.findById as jest.Mock).mockResolvedValue(mockUser);
+      (mockUnitOfWork.postRepository.create as jest.Mock).mockImplementation(async (post: any) => post);
 
       const result = await handler.execute(validCommand);
 
@@ -105,8 +106,8 @@ describe('CreatePostHandler', () => {
         true,
       );
 
-      mockUnitOfWork.userRepository.findById.mockResolvedValue(mockUser);
-      mockUnitOfWork.postRepository.create.mockImplementation(async (post) => post);
+      (mockUnitOfWork.userRepository.findById as jest.Mock).mockResolvedValue(mockUser);
+      (mockUnitOfWork.postRepository.create as jest.Mock).mockImplementation(async (post: any) => post);
 
       const result = await handler.execute(publishedCommand);
 
@@ -116,7 +117,7 @@ describe('CreatePostHandler', () => {
     });
 
     it('should fail when author is not found', async () => {
-      mockUnitOfWork.userRepository.findById.mockResolvedValue(null);
+      (mockUnitOfWork.userRepository.findById as jest.Mock).mockResolvedValue(null);
 
       const result = await handler.execute(validCommand);
 
@@ -126,8 +127,8 @@ describe('CreatePostHandler', () => {
     });
 
     it('should execute within a transaction', async () => {
-      mockUnitOfWork.userRepository.findById.mockResolvedValue(mockUser);
-      mockUnitOfWork.postRepository.create.mockImplementation(async (post) => post);
+      (mockUnitOfWork.userRepository.findById as jest.Mock).mockResolvedValue(mockUser);
+      (mockUnitOfWork.postRepository.create as jest.Mock).mockImplementation(async (post: any) => post);
 
       await handler.execute(validCommand);
 

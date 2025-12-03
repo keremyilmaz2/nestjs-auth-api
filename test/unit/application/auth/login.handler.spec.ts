@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Test, TestingModule } from '@nestjs/testing';
 import { LoginHandler } from '@application/auth/commands/login/login.handler';
 import { LoginCommand } from '@application/auth/commands/login/login.command';
 import { UNIT_OF_WORK, IUnitOfWork } from '@core/unit-of-work';
 import { PASSWORD_HASHER, IPasswordHasher } from '@core/services/password-hasher.interface';
 import { TOKEN_GENERATOR, ITokenGenerator } from '@core/services/token-generator.interface';
-import { User } from '@core/domain/entities/user.entity';
+import { User } from '../../../../src/core/domain/entities/user.entity';
 import { Role } from '@core/domain/enums/role.enum';
 
 describe('LoginHandler', () => {
@@ -27,29 +28,44 @@ describe('LoginHandler', () => {
   beforeEach(async () => {
     mockUnitOfWork = {
       userRepository: {
-        findByEmail: jest.fn(),
-        update: jest.fn(),
-        emailExists: jest.fn(),
-        usernameExists: jest.fn(),
-        create: jest.fn(),
-        findById: jest.fn(),
-        findByUsername: jest.fn(),
-        findByRefreshToken: jest.fn(),
-        findByRole: jest.fn(),
-        findActiveUsers: jest.fn(),
-        findActiveUsersPaginated: jest.fn(),
-        findAll: jest.fn(),
-        findAllPaginated: jest.fn(),
-        delete: jest.fn(),
-        exists: jest.fn(),
-        count: jest.fn(),
+        findByEmail: jest.fn() as any,
+        update: jest.fn() as any,
+        emailExists: jest.fn() as any,
+        usernameExists: jest.fn() as any,
+        create: jest.fn() as any,
+        findById: jest.fn() as any,
+        findByUsername: jest.fn() as any,
+        findByRefreshToken: jest.fn() as any,
+        findByRole: jest.fn() as any,
+        findActiveUsers: jest.fn() as any,
+        findActiveUsersPaginated: jest.fn() as any,
+        findAll: jest.fn() as any,
+        findAllPaginated: jest.fn() as any,
+        delete: jest.fn() as any,
+        exists: jest.fn() as any,
+        count: jest.fn() as any,
       },
-      postRepository: {} as any,
+      postRepository: {
+        findById: jest.fn() as any,
+        findAll: jest.fn() as any,
+        findAllPaginated: jest.fn() as any,
+        create: jest.fn() as any,
+        update: jest.fn() as any,
+        delete: jest.fn() as any,
+        exists: jest.fn() as any,
+        count: jest.fn() as any,
+        findByAuthorId: jest.fn() as any,
+        findByAuthorIdPaginated: jest.fn() as any,
+        findPublishedPosts: jest.fn() as any,
+        findPublishedPostsPaginated: jest.fn() as any,
+        findByTitle: jest.fn() as any,
+        searchByContent: jest.fn() as any,
+      },
       beginTransaction: jest.fn(),
       commit: jest.fn(),
       rollback: jest.fn(),
       executeInTransaction: jest.fn().mockImplementation(async (work) => work()),
-    } as unknown as jest.Mocked<IUnitOfWork>;
+    } as any;
 
     mockPasswordHasher = {
       hash: jest.fn(),
@@ -86,15 +102,15 @@ describe('LoginHandler', () => {
     const validCommand = new LoginCommand('test@example.com', 'password123');
 
     it('should successfully login with valid credentials', async () => {
-      mockUnitOfWork.userRepository.findByEmail.mockResolvedValue(mockUser);
-      mockPasswordHasher.compare.mockResolvedValue(true);
-      mockTokenGenerator.generateTokenPair.mockReturnValue({
+      (mockUnitOfWork.userRepository.findByEmail as jest.Mock).mockResolvedValue(mockUser);
+      (mockPasswordHasher.compare as jest.Mock).mockResolvedValue(true);
+      (mockTokenGenerator.generateTokenPair as jest.Mock).mockReturnValue({
         accessToken: 'access-token',
         refreshToken: 'refresh-token',
         accessTokenExpiresAt: new Date(),
         refreshTokenExpiresAt: new Date(),
       });
-      mockUnitOfWork.userRepository.update.mockResolvedValue(mockUser);
+      (mockUnitOfWork.userRepository.update as jest.Mock).mockResolvedValue(mockUser);
 
       const result = await handler.execute(validCommand);
 
@@ -104,7 +120,7 @@ describe('LoginHandler', () => {
     });
 
     it('should fail when user is not found', async () => {
-      mockUnitOfWork.userRepository.findByEmail.mockResolvedValue(null);
+      (mockUnitOfWork.userRepository.findByEmail as jest.Mock).mockResolvedValue(null);
 
       const result = await handler.execute(validCommand);
 
@@ -114,8 +130,8 @@ describe('LoginHandler', () => {
     });
 
     it('should fail when password is incorrect', async () => {
-      mockUnitOfWork.userRepository.findByEmail.mockResolvedValue(mockUser);
-      mockPasswordHasher.compare.mockResolvedValue(false);
+      (mockUnitOfWork.userRepository.findByEmail as jest.Mock).mockResolvedValue(mockUser);
+      (mockPasswordHasher.compare as jest.Mock).mockResolvedValue(false);
 
       const result = await handler.execute(validCommand);
 
@@ -129,7 +145,7 @@ describe('LoginHandler', () => {
         ...mockUser.toProps(),
         isActive: false,
       });
-      mockUnitOfWork.userRepository.findByEmail.mockResolvedValue(deactivatedUser);
+      (mockUnitOfWork.userRepository.findByEmail as jest.Mock).mockResolvedValue(deactivatedUser);
 
       const result = await handler.execute(validCommand);
 
