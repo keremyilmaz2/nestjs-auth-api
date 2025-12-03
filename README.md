@@ -3,7 +3,21 @@
 [![CI/CD Pipeline](https://github.com/yourusername/nestjs-auth-api/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/yourusername/nestjs-auth-api/actions/workflows/ci-cd.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Professional NestJS API with **Clean Architecture**, **Repository Pattern**, **Unit of Work**, **JWT Authentication**, and **Role-based Access Control**.
+Professional NestJS API with **Clean Architecture**, **Repository Pattern**, **Unit of Work**, **JWT Authentication**, **Role-based Access Control**, and **ELK Stack** for centralized logging.
+
+## ✨ Features
+
+- 🔐 **JWT Authentication** with Access & Refresh Tokens
+- 👥 **Role-based Access Control** (USER, MODERATOR, ADMIN)
+- 🏗️ **Clean Architecture** with clear separation of concerns
+- 📦 **Repository Pattern** with abstractions
+- 🔄 **Unit of Work** for transaction management
+- 📝 **Swagger/OpenAPI** documentation
+- 🐳 **Docker** & Docker Compose support
+- 🚀 **CI/CD** with GitHub Actions → AWS ECR → ECS Fargate
+- ✅ **Unit & E2E Tests** with Jest
+- 📊 **ELK Stack** (Elasticsearch + Kibana) for centralized logging
+- 📁 **Log Rotation** with daily rotating files
 
 ## 🏗️ Architecture
 
@@ -23,7 +37,7 @@ src/
 ├── infrastructure/          # Infrastructure Layer
 │   ├── database/            # TypeORM Implementation
 │   ├── services/            # External Services
-│   └── logging/             # Winston Logger
+│   └── logging/             # Winston Logger + ELK
 │
 ├── presentation/            # Presentation Layer (API)
 │   ├── controllers/         # REST Controllers
@@ -36,26 +50,13 @@ src/
     └── utils/
 ```
 
-## ✨ Features
-
-- 🔐 **JWT Authentication** with Access & Refresh Tokens
-- 👥 **Role-based Access Control** (USER, MODERATOR, ADMIN)
-- 🏗️ **Clean Architecture** with clear separation of concerns
-- 📦 **Repository Pattern** with abstractions
-- 🔄 **Unit of Work** for transaction management
-- 📝 **Swagger/OpenAPI** documentation
-- 🐳 **Docker** & Docker Compose support
-- 🚀 **CI/CD** with GitHub Actions → AWS ECR → ECS Fargate
-- ✅ **Unit & E2E Tests** with Jest
-- 📊 **Comprehensive Logging** with Winston
-
 ## 🚀 Quick Start
 
 ### Prerequisites
 
 - Node.js 20+
-- PostgreSQL 16+
-- Docker & Docker Compose (optional)
+- Docker & Docker Compose
+- PostgreSQL 16+ (or use Docker)
 
 ### Local Development
 
@@ -90,14 +91,14 @@ src/
    - API: http://localhost:3000/api
    - Swagger: http://localhost:3000/api/docs
 
-### Docker Development
+### Docker Development (Full Stack)
 
 ```bash
-# Start all services (API + PostgreSQL)
+# Start all services (API + PostgreSQL + Elasticsearch + Kibana)
 docker-compose up -d
 
 # Or with development mode (hot reload)
-docker-compose --profile dev up -d api-dev postgres
+docker-compose --profile dev up -d api-dev postgres elasticsearch kibana
 ```
 
 ## 📚 API Endpoints
@@ -106,35 +107,35 @@ docker-compose --profile dev up -d api-dev postgres
 
 | Method | Endpoint | Description | Access |
 |--------|----------|-------------|--------|
-| POST | `/api/auth/register` | Register new user | Public |
-| POST | `/api/auth/login` | Login & get tokens | Public |
-| POST | `/api/auth/refresh` | Refresh access token | Public |
+| POST | `/api/v1/auth/register` | Register new user | Public |
+| POST | `/api/v1/auth/login` | Login & get tokens | Public |
+| POST | `/api/v1/auth/refresh` | Refresh access token | Public |
 
 ### Users
 
 | Method | Endpoint | Description | Access |
 |--------|----------|-------------|--------|
-| GET | `/api/users` | List all users | MODERATOR+ |
-| GET | `/api/users/me` | Get current user | USER+ |
-| GET | `/api/users/:id` | Get user by ID | MODERATOR+ |
-| DELETE | `/api/users/:id` | Delete user | ADMIN |
+| GET | `/api/v1/users` | List all users | MODERATOR+ |
+| GET | `/api/v1/users/me` | Get current user | USER+ |
+| GET | `/api/v1/users/:id` | Get user by ID | MODERATOR+ |
+| DELETE | `/api/v1/users/:id` | Delete user | ADMIN |
 
 ### Posts
 
 | Method | Endpoint | Description | Access |
 |--------|----------|-------------|--------|
-| POST | `/api/posts` | Create post | USER+ |
-| GET | `/api/posts` | List all posts | USER+ |
-| GET | `/api/posts/my` | Get my posts | USER+ |
-| GET | `/api/posts/:id` | Get post by ID | USER+ |
-| PUT | `/api/posts/:id` | Update post | Owner/MODERATOR+ |
-| DELETE | `/api/posts/:id` | Delete post | MODERATOR+ |
+| POST | `/api/v1/posts` | Create post | USER+ |
+| GET | `/api/v1/posts` | List all posts | USER+ |
+| GET | `/api/v1/posts/my` | Get my posts | USER+ |
+| GET | `/api/v1/posts/:id` | Get post by ID | USER+ |
+| PUT | `/api/v1/posts/:id` | Update post | Owner/MODERATOR+ |
+| DELETE | `/api/v1/posts/:id` | Delete post | MODERATOR+ |
 
 ## 🔐 Authentication
 
 ### Register
 ```bash
-curl -X POST http://localhost:3000/api/auth/register \
+curl -X POST http://localhost:3000/api/v1/auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "email": "user@example.com",
@@ -145,7 +146,7 @@ curl -X POST http://localhost:3000/api/auth/register \
 
 ### Login
 ```bash
-curl -X POST http://localhost:3000/api/auth/login \
+curl -X POST http://localhost:3000/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "user@example.com",
@@ -153,39 +154,10 @@ curl -X POST http://localhost:3000/api/auth/login \
   }'
 ```
 
-### Response
-```json
-{
-  "success": true,
-  "data": {
-    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "refreshToken": "550e8400-e29b-41d4-a716-446655440000",
-    "accessTokenExpiresAt": "2024-01-15T10:45:00.000Z",
-    "refreshTokenExpiresAt": "2024-01-22T10:30:00.000Z",
-    "user": {
-      "id": "123e4567-e89b-12d3-a456-426614174000",
-      "email": "user@example.com",
-      "username": "johndoe",
-      "role": "USER"
-    }
-  },
-  "timestamp": "2024-01-15T10:30:00.000Z"
-}
-```
-
 ### Using JWT Token
 ```bash
-curl http://localhost:3000/api/users/me \
+curl http://localhost:3000/api/v1/users/me \
   -H "Authorization: Bearer <your-access-token>"
-```
-
-### Refresh Token
-```bash
-curl -X POST http://localhost:3000/api/auth/refresh \
-  -H "Content-Type: application/json" \
-  -d '{
-    "refreshToken": "550e8400-e29b-41d4-a716-446655440000"
-  }'
 ```
 
 ## 👥 Role Hierarchy
@@ -196,26 +168,119 @@ curl -X POST http://localhost:3000/api/auth/refresh \
 | **MODERATOR** | USER + manage all posts, view users |
 | **ADMIN** | MODERATOR + manage users, full access |
 
-## 🐳 Docker Compose
+## 📊 Logging & Monitoring
 
-### Production
+### Log Architecture
+
+```
+┌─────────────┐     ┌───────────────────┐     ┌─────────────┐
+│   NestJS    │────▶│  Elasticsearch    │◀────│   Kibana    │
+│   API       │     │  (Log Storage)    │     │   (UI)      │
+└─────────────┘     └───────────────────┘     └─────────────┘
+     :3000               :9200                    :5601
+        │
+        ▼
+   logs/
+   ├── error-YYYY-MM-DD.log
+   ├── combined-YYYY-MM-DD.log
+   ├── exceptions-YYYY-MM-DD.log
+   └── rejections-YYYY-MM-DD.log
+```
+
+### Log Features
+
+- **Daily Rotation**: Log files rotate daily with date suffix
+- **Size Limit**: Max 20MB per file
+- **Retention**: 14 days (auto-cleanup)
+- **Centralized**: All logs sent to Elasticsearch
+- **Correlation ID**: Track requests across services
+
+### Log Levels by Environment
+
+| Environment | Console | File | Elasticsearch |
+|-------------|---------|------|---------------|
+| Development | `debug` | All | All |
+| Production | `warn+` | All | All |
+
+### Accessing Kibana
+
+1. **Start ELK Stack**
+   ```bash
+   docker-compose up -d elasticsearch kibana
+   ```
+
+2. **Open Kibana**: http://localhost:5601
+   - Username: `elastic`
+   - Password: `changeme` (or your `ELASTIC_PASSWORD`)
+
+3. **Create Index Pattern**
+   - Go to: Stack Management → Index Patterns
+   - Create: `nestjs-logs-*`
+   - Timestamp: `@timestamp`
+
+4. **View Logs**
+   - Go to: Analytics → Discover
+   - Select: `nestjs-logs-*`
+
+### Kibana Query Examples
+
+```
+# All errors
+level: "error"
+
+# Specific correlation ID
+correlationId: "abc-123"
+
+# 401 errors
+message: *401*
+
+# Last 15 minutes + errors
+level: "error" AND @timestamp >= now-15m
+
+# Specific endpoint
+message: */api/v1/auth/login*
+```
+
+### Log Format (Elasticsearch)
+
+```json
+{
+  "@timestamp": "2025-12-03T19:15:30.123Z",
+  "level": "info",
+  "message": "[abc-123] → POST /api/v1/auth/login - 200 - 45ms",
+  "context": "LoggingInterceptor",
+  "correlationId": "abc-123",
+  "service": "nestjs-auth-api",
+  "environment": "development"
+}
+```
+
+## 🐳 Docker Services
+
+| Service | Port | Description |
+|---------|------|-------------|
+| `api` | 3000 | NestJS Application |
+| `postgres` | 5432 | PostgreSQL Database |
+| `elasticsearch` | 9200 | Log Storage & Search |
+| `kibana` | 5601 | Log Visualization |
+
+### Commands
+
 ```bash
+# Start all services
 docker-compose up -d
-```
 
-### Development (with hot reload)
-```bash
-docker-compose --profile dev up -d api-dev postgres
-```
+# Start specific services
+docker-compose up -d postgres elasticsearch kibana
 
-### Stop services
-```bash
-docker-compose down
-```
-
-### View logs
-```bash
+# View logs
 docker-compose logs -f api
+
+# Stop all services
+docker-compose down
+
+# Stop and remove volumes
+docker-compose down -v
 ```
 
 ## 🚀 Deployment (AWS ECS Fargate)
@@ -232,32 +297,16 @@ docker-compose logs -f api
 3. Docker image built & pushed to ECR
 4. ECS Fargate deployment triggered
 
-### Manual Deployment
-```bash
-# Build image
-docker build -t nestjs-auth-api .
-
-# Tag for ECR
-docker tag nestjs-auth-api:latest <aws-account-id>.dkr.ecr.<region>.amazonaws.com/nestjs-auth-api:latest
-
-# Push to ECR
-docker push <aws-account-id>.dkr.ecr.<region>.amazonaws.com/nestjs-auth-api:latest
-```
-
 ## 🧪 Testing
 
-### Unit Tests
 ```bash
+# Unit Tests
 npm run test
-```
 
-### E2E Tests
-```bash
+# E2E Tests
 npm run test:e2e
-```
 
-### Coverage
-```bash
+# Coverage
 npm run test:cov
 ```
 
@@ -275,7 +324,10 @@ npm run test:cov
 | `JWT_SECRET` | JWT signing secret | - |
 | `JWT_ACCESS_EXPIRES_IN` | Access token TTL | `15m` |
 | `JWT_REFRESH_EXPIRES_DAYS` | Refresh token TTL | `7` |
-| `CORS_ORIGIN` | CORS allowed origins | `*` |
+| `ELASTICSEARCH_NODE` | Elasticsearch URL | `http://localhost:9200` |
+| `ELASTICSEARCH_INDEX_PREFIX` | Log index prefix | `nestjs-logs` |
+| `ELASTICSEARCH_USERNAME` | Elasticsearch user | `elastic` |
+| `ELASTICSEARCH_PASSWORD` | Elasticsearch pass | `changeme` |
 
 ## 📝 Scripts
 

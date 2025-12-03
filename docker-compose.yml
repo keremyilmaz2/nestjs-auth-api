@@ -21,8 +21,14 @@ services:
       - JWT_ACCESS_EXPIRES_IN=${JWT_ACCESS_EXPIRES_IN:-15m}
       - JWT_REFRESH_EXPIRES_DAYS=${JWT_REFRESH_EXPIRES_DAYS:-7}
       - CORS_ORIGIN=${CORS_ORIGIN:-*}
+      - ELASTICSEARCH_NODE=http://elasticsearch:9200
+      - ELASTICSEARCH_INDEX_PREFIX=nestjs-logs
+      - ELASTICSEARCH_USERNAME=elastic
+      - ELASTICSEARCH_PASSWORD=${ELASTIC_PASSWORD:-elastic11}
     depends_on:
       postgres:
+        condition: service_healthy
+      elasticsearch:
         condition: service_healthy
     networks:
       - app-network
@@ -56,6 +62,61 @@ services:
       retries: 5
       start_period: 10s
 
+  # Elasticsearch - Log storage & search engine
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: nestjs-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=true
+      - xpack.security.enrollment.enabled=false
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-elastic11}
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - cluster.name=nestjs-cluster
+      - bootstrap.memory_lock=true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s -u elastic:${ELASTIC_PASSWORD:-elastic11} http://localhost:9200/_cluster/health | grep -q '\"status\":\"green\"\\|\"status\":\"yellow\"'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # Kibana - Log visualization
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    container_name: nestjs-kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=kibana_system
+      - ELASTICSEARCH_PASSWORD=${KIBANA_PASSWORD:-kibana11}
+      - XPACK_SECURITY_ENABLED=true
+    ports:
+      - "5601:5601"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:5601/api/status | grep -q 'available'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
   # Development service (optional)
   api-dev:
     build:
@@ -76,6 +137,10 @@ services:
       - JWT_SECRET=${JWT_SECRET:-dev-secret-key}
       - JWT_ACCESS_EXPIRES_IN=${JWT_ACCESS_EXPIRES_IN:-15m}
       - JWT_REFRESH_EXPIRES_DAYS=${JWT_REFRESH_EXPIRES_DAYS:-7}
+      - ELASTICSEARCH_NODE=http://elasticsearch:9200
+      - ELASTICSEARCH_INDEX_PREFIX=nestjs-logs-dev
+      - ELASTICSEARCH_USERNAME=elastic
+      - ELASTICSEARCH_PASSWORD=${ELASTIC_PASSWORD:-elastic11}
     volumes:
       - .:/app
       - /app/node_modules
@@ -94,4 +159,6 @@ networks:
 
 volumes:
   postgres_data:
+    driver: local
+  elasticsearch_data:
     driver: local
