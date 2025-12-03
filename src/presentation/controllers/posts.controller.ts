@@ -39,7 +39,7 @@ import { GetPostsQuery, GetPostsHandler } from '@application/posts/queries/get-p
 import { GetPostByIdQuery, GetPostByIdHandler } from '@application/posts/queries/get-post-by-id';
 
 @ApiTags('Posts')
-@ApiBearerAuth()
+@ApiBearerAuth('JWT-auth')
 @Controller('posts')
 export class PostsController {
   constructor(

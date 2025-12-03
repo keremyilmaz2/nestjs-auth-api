@@ -33,7 +33,7 @@ export class UserOrmEntity {
   })
   role: Role;
 
-  @Column({ name: 'refresh_token', nullable: true })
+  @Column({ name: 'refresh_token', type: 'varchar', nullable: true })
   refreshToken: string | null;
 
   @Column({ name: 'refresh_token_expires_at', type: 'timestamp', nullable: true })

@@ -30,7 +30,7 @@ import { GetUserByIdQuery, GetUserByIdHandler } from '@application/users/queries
 import { DeleteUserCommand, DeleteUserHandler } from '@application/users/commands/delete-user';
 
 @ApiTags('Users')
-@ApiBearerAuth()
+@ApiBearerAuth('JWT-auth')
 @Controller('users')
 export class UsersController {
   constructor(
