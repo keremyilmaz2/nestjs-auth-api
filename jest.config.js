@@ -25,7 +25,22 @@ module.exports = {
     "^@shared/(.*)$": "<rootDir>/src/shared/$1"
   },
   collectCoverageFrom: [
-    "**/*.(t|j)s"
+    'src/**/*.ts',
+    '!src/**/*.d.ts',
+    '!src/**/*.interface.ts',
+    '!src/**/*.module.ts',
+    '!src/main.ts',
+    '!src/**/*.dto.ts',
+    '!src/**/index.ts'
   ],
-  coverageDirectory: "./coverage"
+  coverageDirectory: './coverage',
+  coverageReporters: ['text', 'lcov', 'html'],
+  coverageThreshold: {
+    global: {
+      branches: 50,
+      functions: 50,
+      lines: 50,
+      statements: 50
+    }
+  }
 };
