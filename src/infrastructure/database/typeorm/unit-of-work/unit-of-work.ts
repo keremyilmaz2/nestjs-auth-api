@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { DataSource, EntityManager, QueryRunner } from 'typeorm';
+import { DataSource, QueryRunner } from 'typeorm'; // EntityManager kaldırıldı
 import { IUnitOfWork } from '@core/unit-of-work';
 import { IUserRepository } from '@core/repositories/user.repository.interface';
 import { IPostRepository } from '@core/repositories/post.repository.interface';
