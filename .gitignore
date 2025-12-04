@@ -1,6 +1,6 @@
 # Dependencies
 node_modules/
-package-lock.json
+# package-lock.json  # CI/CD için lock dosyası gerekli, bu yüzden ignore edilmemeli
 
 # Build
 dist/
