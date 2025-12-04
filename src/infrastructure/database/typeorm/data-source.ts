@@ -16,7 +16,7 @@ export const dataSourceOptions: DataSourceOptions = {
   migrations: [__dirname + '/migrations/*{.ts,.js}'],
   synchronize: process.env.NODE_ENV !== 'production',
   logging: process.env.NODE_ENV === 'development',
-  // SSL geçici olarak kapatıldı - test için
+  // SSL geçici olarak kapatıldı - test için v1
   ssl: false,
 };
 
