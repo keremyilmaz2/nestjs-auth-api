@@ -10,7 +10,7 @@ on:
       - main
 
 env:
-  AWS_REGION: eu-west-1
+  AWS_REGION: us-west-1
   ECR_REPOSITORY: nestjs-auth-api
   ECS_CLUSTER: nestjs-cluster
   ECS_SERVICE: nestjs-auth-service
