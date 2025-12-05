@@ -34,7 +34,6 @@ import { Roles } from '../decorators/roles.decorator';
 import { CurrentUser, CurrentUserData } from '../decorators/current-user.decorator';
 import { Role } from '@core/domain/enums/role.enum';
 import {
-  CreatePostDto,
   UpdatePostDto,
   PostResponseDto,
   PaginatedPostsResponseDto,
