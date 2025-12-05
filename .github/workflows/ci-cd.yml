@@ -185,6 +185,9 @@ jobs:
     needs: build
     if: github.ref == 'refs/heads/main'
     continue-on-error: true
+    permissions:
+      contents: read
+      security-events: write  # GitHub Security tab'e yazma izni
 
     steps:
       - name: Checkout code
@@ -209,6 +212,6 @@ jobs:
           output: 'trivy-results.sarif'
 
       - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: 'trivy-results.sarif'
