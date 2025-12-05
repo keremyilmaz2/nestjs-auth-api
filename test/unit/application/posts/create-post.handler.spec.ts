@@ -3,12 +3,14 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CreatePostHandler } from '@application/posts/commands/create-post/create-post.handler';
 import { CreatePostCommand } from '@application/posts/commands/create-post/create-post.command';
 import { UNIT_OF_WORK, IUnitOfWork } from '@core/unit-of-work';
+import { S3Service } from '@infrastructure/services/s3.service';
 import { User } from '@core/domain/entities/user.entity';
 import { Role } from '@core/domain/enums/role.enum';
 
 describe('CreatePostHandler', () => {
   let handler: CreatePostHandler;
   let mockUnitOfWork: jest.Mocked<IUnitOfWork>;
+  let mockS3Service: jest.Mocked<S3Service>;
 
   const mockUser = User.create({
     id: 'author-id',
@@ -63,10 +65,18 @@ describe('CreatePostHandler', () => {
       executeInTransaction: jest.fn().mockImplementation(async (work) => work()),
     } as any;
 
+    mockS3Service = {
+      uploadFile: jest.fn(),
+      uploadMultipleFiles: jest.fn(),
+      deleteFile: jest.fn(),
+      deleteMultipleFiles: jest.fn(),
+    } as any;
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CreatePostHandler,
         { provide: UNIT_OF_WORK, useValue: mockUnitOfWork },
+        { provide: S3Service, useValue: mockS3Service },
       ],
     }).compile();
 
@@ -85,7 +95,7 @@ describe('CreatePostHandler', () => {
       false,
     );
 
-    it('should successfully create a post', async () => {
+    it('should successfully create a post without images', async () => {
       (mockUnitOfWork.userRepository.findById as jest.Mock).mockResolvedValue(mockUser);
       (mockUnitOfWork.postRepository.create as jest.Mock).mockImplementation(async (post: any) => post);
 
@@ -96,6 +106,89 @@ describe('CreatePostHandler', () => {
       expect(result.value.content).toBe('This is the content of the test post.');
       expect(result.value.authorId).toBe('author-id');
       expect(result.value.isPublished).toBe(false);
+      expect(result.value.images).toEqual([]);
+    });
+
+    it('should successfully create a post with images', async () => {
+      const mockFiles = [
+        {
+          fieldname: 'images',
+          originalname: 'test1.jpg',
+          encoding: '7bit',
+          mimetype: 'image/jpeg',
+          buffer: Buffer.from('test'),
+          size: 1024,
+        },
+        {
+          fieldname: 'images',
+          originalname: 'test2.png',
+          encoding: '7bit',
+          mimetype: 'image/png',
+          buffer: Buffer.from('test'),
+          size: 2048,
+        },
+      ] as Express.Multer.File[];
+
+      const commandWithImages = new CreatePostCommand(
+        'Test Post with Images',
+        'Content here',
+        'author-id',
+        false,
+        mockFiles,
+      );
+
+      const mockUploadedFiles = [
+        {
+          url: 'https://s3.amazonaws.com/bucket/image1.jpg',
+          key: 'posts/image1.jpg',
+        },
+        {
+          url: 'https://s3.amazonaws.com/bucket/image2.png',
+          key: 'posts/image2.png',
+        },
+      ];
+
+      (mockUnitOfWork.userRepository.findById as jest.Mock).mockResolvedValue(mockUser);
+      (mockS3Service.uploadMultipleFiles as jest.Mock).mockResolvedValue(mockUploadedFiles);
+      (mockUnitOfWork.postRepository.create as jest.Mock).mockImplementation(async (post: any) => post);
+
+      const result = await handler.execute(commandWithImages);
+
+      expect(result.isSuccess).toBe(true);
+      expect(result.value.images).toHaveLength(2);
+      expect(result.value.images[0].imageUrl).toBe('https://s3.amazonaws.com/bucket/image1.jpg');
+      expect(result.value.images[1].imageUrl).toBe('https://s3.amazonaws.com/bucket/image2.png');
+      expect(mockS3Service.uploadMultipleFiles).toHaveBeenCalledWith(mockFiles, 'posts');
+    });
+
+    it('should fail when image upload fails', async () => {
+      const mockFiles = [
+        {
+          fieldname: 'images',
+          originalname: 'test.jpg',
+          encoding: '7bit',
+          mimetype: 'image/jpeg',
+          buffer: Buffer.from('test'),
+          size: 1024,
+        },
+      ] as Express.Multer.File[];
+
+      const commandWithImages = new CreatePostCommand(
+        'Test Post',
+        'Content',
+        'author-id',
+        false,
+        mockFiles,
+      );
+
+      (mockUnitOfWork.userRepository.findById as jest.Mock).mockResolvedValue(mockUser);
+      (mockS3Service.uploadMultipleFiles as jest.Mock).mockRejectedValue(new Error('S3 upload failed'));
+
+      const result = await handler.execute(commandWithImages);
+
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe('Failed to upload images');
+      expect(result.errorCode).toBe('UPLOAD_FAILED');
     });
 
     it('should create a published post when isPublished is true', async () => {

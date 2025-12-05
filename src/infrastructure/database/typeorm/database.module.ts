@@ -2,6 +2,7 @@ import { Module, Global } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UserOrmEntity, PostOrmEntity } from './entities';
+import { PostImageOrmEntity } from './entities/post-image.orm-entity'; // YENİ
 import { UserRepository, PostRepository } from './repositories';
 import { UnitOfWork } from './unit-of-work';
 import { USER_REPOSITORY } from '@core/repositories/user.repository.interface';
@@ -21,12 +22,12 @@ import { UNIT_OF_WORK } from '@core/unit-of-work';
         username: configService.get<string>('DB_USERNAME', 'postgres'),
         password: configService.get<string>('DB_PASSWORD', 'postgres'),
         database: configService.get<string>('DB_NAME', 'nestjs_auth_db'),
-        entities: [UserOrmEntity, PostOrmEntity],
+        entities: [UserOrmEntity, PostOrmEntity, PostImageOrmEntity], // PostImageOrmEntity eklendi
         synchronize: configService.get<string>('NODE_ENV') !== 'production',
         logging: configService.get<string>('NODE_ENV') === 'development',
       }),
     }),
-    TypeOrmModule.forFeature([UserOrmEntity, PostOrmEntity]),
+    TypeOrmModule.forFeature([UserOrmEntity, PostOrmEntity, PostImageOrmEntity]), // PostImageOrmEntity eklendi
   ],
   providers: [
     UserRepository,

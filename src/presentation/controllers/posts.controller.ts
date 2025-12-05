@@ -13,7 +13,13 @@ import {
   ForbiddenException,
   BadRequestException,
   ParseUUIDPipe,
+  UseInterceptors,
+  UploadedFiles,
+  ParseFilePipe,
+  MaxFileSizeValidator,
+  FileTypeValidator,
 } from '@nestjs/common';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import {
   ApiTags,
   ApiOperation,
@@ -22,6 +28,7 @@ import {
   ApiQuery,
   ApiParam,
   ApiBody,
+  ApiConsumes,
 } from '@nestjs/swagger';
 import { Roles } from '../decorators/roles.decorator';
 import { CurrentUser, CurrentUserData } from '../decorators/current-user.decorator';
@@ -51,34 +58,81 @@ export class PostsController {
   ) {}
 
   @Post()
-  @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Create a new post (USER+)' })
-  @ApiBody({ type: CreatePostDto })
-  @ApiResponse({
-    status: 201,
-    description: 'Post successfully created',
-    type: PostResponseDto,
-  })
-  @ApiResponse({ status: 400, description: 'Validation error' })
-  async createPost(
-    @Body() dto: CreatePostDto,
-    @CurrentUser() user: CurrentUserData,
-  ): Promise<PostResponseDto> {
-    const command = new CreatePostCommand(
-      dto.title,
-      dto.content,
-      user.id,
-      dto.isPublished || false,
-    );
-
-    const result = await this.createPostHandler.execute(command);
-
-    if (result.isFailure) {
-      throw new BadRequestException(result.error);
-    }
-
-    return result.value;
+@HttpCode(HttpStatus.CREATED)
+@UseInterceptors(FilesInterceptor('images', 5))
+@ApiOperation({ summary: 'Create a new post with optional images (USER+)' })
+@ApiConsumes('multipart/form-data')
+@ApiBody({
+  schema: {
+    type: 'object',
+    properties: {
+      title: { type: 'string', example: 'My Post Title' },
+      content: { type: 'string', example: 'Post content here' },
+      isPublished: { type: 'boolean', example: false },
+      images: {
+        type: 'array',
+        items: {
+          type: 'string',
+          format: 'binary',
+        },
+        description: 'Post images (optional, max 5 images, max 5MB each)',
+      },
+    },
+    required: ['title', 'content'],
+  },
+})
+@ApiResponse({
+  status: 201,
+  description: 'Post successfully created',
+  type: PostResponseDto,
+})
+@ApiResponse({ status: 400, description: 'Validation error' })
+async createPost(
+  @Body('title') title: string,  // DEĞİŞTİ - tek tek parametre alıyoruz
+  @Body('content') content: string,  // DEĞİŞTİ
+  @Body('isPublished') isPublished: string | boolean,  // DEĞİŞTİ - string olabilir
+  @CurrentUser() user: CurrentUserData,
+  @UploadedFiles(
+    new ParseFilePipe({
+      validators: [
+        new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }),
+        new FileTypeValidator({ fileType: /(jpg|jpeg|png|gif|webp)$/ }),
+      ],
+      fileIsRequired: false,
+    }),
+  )
+  files?: Express.Multer.File[],
+): Promise<PostResponseDto> {
+  // Validation
+  if (!title || title.trim().length < 3) {
+    throw new BadRequestException('Title must be at least 3 characters');
   }
+  if (!content || content.trim().length < 10) {
+    throw new BadRequestException('Content must be at least 10 characters');
+  }
+  if (files && files.length > 5) {
+    throw new BadRequestException('Maximum 5 images allowed');
+  }
+
+  // isPublished string'den boolean'a çevir
+  const isPublishedBool = isPublished === true || isPublished === 'true';
+
+  const command = new CreatePostCommand(
+    title,
+    content,
+    user.id,
+    isPublishedBool,
+    files,
+  );
+
+  const result = await this.createPostHandler.execute(command);
+
+  if (result.isFailure) {
+    throw new BadRequestException(result.error);
+  }
+
+  return result.value;
+}
 
   @Get()
   @ApiOperation({ summary: 'Get all posts (USER+)' })

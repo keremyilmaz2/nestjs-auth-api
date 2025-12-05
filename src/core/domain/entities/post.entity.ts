@@ -1,4 +1,5 @@
 import { BaseEntity } from './base.entity';
+import { PostImage } from './post-image.entity';
 
 export interface PostProps {
   id: string;
@@ -7,6 +8,7 @@ export interface PostProps {
   authorId: string;
   isPublished: boolean;
   publishedAt?: Date | null;
+  images?: PostImage[];
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -17,6 +19,7 @@ export class Post extends BaseEntity {
   private _authorId: string;
   private _isPublished: boolean;
   private _publishedAt: Date | null;
+  private _images: PostImage[];
 
   private constructor(props: PostProps) {
     super(props.id, props.createdAt, props.updatedAt);
@@ -25,6 +28,7 @@ export class Post extends BaseEntity {
     this._authorId = props.authorId;
     this._isPublished = props.isPublished;
     this._publishedAt = props.publishedAt || null;
+    this._images = props.images || [];
   }
 
   static create(props: PostProps): Post {
@@ -43,6 +47,7 @@ export class Post extends BaseEntity {
       content,
       authorId,
       isPublished: false,
+      images: [],
     });
   }
 
@@ -67,6 +72,10 @@ export class Post extends BaseEntity {
     return this._publishedAt;
   }
 
+  get images(): PostImage[] {
+    return this._images;
+  }
+
   // Domain Methods
   updateTitle(title: string): void {
     this._title = title;
@@ -75,6 +84,26 @@ export class Post extends BaseEntity {
 
   updateContent(content: string): void {
     this._content = content;
+    this.touch();
+  }
+
+  addImage(image: PostImage): void {
+    this._images.push(image);
+    this.touch();
+  }
+
+  addImages(images: PostImage[]): void {
+    this._images.push(...images);
+    this.touch();
+  }
+
+  removeImage(imageId: string): void {
+    this._images = this._images.filter((img) => img.id !== imageId);
+    this.touch();
+  }
+
+  clearImages(): void {
+    this._images = [];
     this.touch();
   }
 
@@ -106,6 +135,7 @@ export class Post extends BaseEntity {
       authorId: this._authorId,
       isPublished: this._isPublished,
       publishedAt: this._publishedAt,
+      images: this._images,
       createdAt: this._createdAt,
       updatedAt: this._updatedAt,
     };

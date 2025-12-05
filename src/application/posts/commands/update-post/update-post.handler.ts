@@ -60,6 +60,13 @@ export class UpdatePostHandler implements IUseCase<UpdatePostCommand, Result<Pos
       authorId: post.authorId,
       isPublished: post.isPublished,
       publishedAt: post.publishedAt,
+      images: post.images.map((img) => ({ // YENİ
+        id: img.id,
+        imageUrl: img.imageUrl,
+        s3Key: img.s3Key,
+        order: img.order,
+        createdAt: img.createdAt,
+      })),
       createdAt: post.createdAt,
       updatedAt: post.updatedAt,
     });

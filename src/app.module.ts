@@ -7,6 +7,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { DatabaseModule } from '@infrastructure/database/typeorm/database.module';
 import { BcryptPasswordHasher } from '@infrastructure/services/bcrypt-password-hasher.service';
 import { JwtTokenGenerator } from '@infrastructure/services/jwt-token-generator.service';
+import { S3Service } from '@infrastructure/services/s3.service'; // YENİ
 import { WinstonLoggerService } from '@infrastructure/logging/winston-logger.service';
 import { PASSWORD_HASHER } from '@core/services/password-hasher.interface';
 import { TOKEN_GENERATOR } from '@core/services/token-generator.interface';
@@ -68,6 +69,7 @@ import { GetPostByIdHandler } from '@application/posts/queries/get-post-by-id';
       provide: TOKEN_GENERATOR,
       useClass: JwtTokenGenerator,
     },
+    S3Service, // YENİ - S3 Service eklendi
 
     // Auth Handlers
     RegisterHandler,

@@ -7,6 +7,7 @@ import {
   IsOptional,
   IsBoolean,
 } from 'class-validator';
+import { PostImageDto } from './post-image.dto';
 
 export class CreatePostDto {
   @ApiProperty({
@@ -86,6 +87,9 @@ export class PostResponseDto {
 
   @ApiPropertyOptional({ example: '2024-01-15T10:30:00.000Z' })
   publishedAt: Date | null;
+
+  @ApiProperty({ type: [PostImageDto], description: 'Post images' })  // YENİ
+  images: PostImageDto[];  // YENİ
 
   @ApiProperty({ example: '2024-01-15T10:30:00.000Z' })
   createdAt: Date;
