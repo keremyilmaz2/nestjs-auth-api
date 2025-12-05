@@ -1,5 +1,6 @@
 import { Post, PostProps } from '@core/domain/entities/post.entity';
 import { PostOrmEntity } from '../typeorm/entities/post.orm-entity';
+import { PostImageMapper } from './post-image.mapper';
 
 export class PostMapper {
   static toDomain(ormEntity: PostOrmEntity): Post {
@@ -10,6 +11,9 @@ export class PostMapper {
       authorId: ormEntity.authorId,
       isPublished: ormEntity.isPublished,
       publishedAt: ormEntity.publishedAt,
+      images: ormEntity.images
+        ? PostImageMapper.toDomainArray(ormEntity.images)
+        : [],
       createdAt: ormEntity.createdAt,
       updatedAt: ormEntity.updatedAt,
     };
@@ -26,6 +30,9 @@ export class PostMapper {
     ormEntity.authorId = props.authorId;
     ormEntity.isPublished = props.isPublished;
     ormEntity.publishedAt = props.publishedAt || null;
+    ormEntity.images = props.images
+      ? PostImageMapper.toOrmEntityArray(props.images)
+      : [];
     ormEntity.createdAt = props.createdAt!;
     ormEntity.updatedAt = props.updatedAt!;
 

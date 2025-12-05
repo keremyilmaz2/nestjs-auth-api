@@ -5,10 +5,12 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
+  OneToMany,
   JoinColumn,
   Index,
 } from 'typeorm';
 import { UserOrmEntity } from './user.orm-entity';
+import { PostImageOrmEntity } from './post-image.orm-entity';
 
 @Entity('posts')
 export class PostOrmEntity {
@@ -42,4 +44,10 @@ export class PostOrmEntity {
   @ManyToOne(() => UserOrmEntity, (user) => user.posts, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'author_id' })
   author: UserOrmEntity;
+
+  @OneToMany(() => PostImageOrmEntity, (image) => image.post, {
+    cascade: true,
+    eager: true,
+  })
+  images: PostImageOrmEntity[];
 }

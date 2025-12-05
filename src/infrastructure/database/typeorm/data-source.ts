@@ -2,6 +2,7 @@ import { DataSource, DataSourceOptions } from 'typeorm';
 import { config } from 'dotenv';
 import { UserOrmEntity } from './entities/user.orm-entity';
 import { PostOrmEntity } from './entities/post.orm-entity';
+import { PostImageOrmEntity } from './entities/post-image.orm-entity';
 
 config();
 
@@ -12,11 +13,10 @@ export const dataSourceOptions: DataSourceOptions = {
   username: process.env.DB_USERNAME || 'postgres',
   password: process.env.DB_PASSWORD || 'postgres',
   database: process.env.DB_NAME || 'nestjs_auth_db',
-  entities: [UserOrmEntity, PostOrmEntity],
-  migrations: [__dirname + '/migrations/*{.ts,.js}'],
+  entities: [UserOrmEntity, PostOrmEntity, PostImageOrmEntity],
+  migrations: [__dirname + '/../migrations/*{.ts,.js}'],
   synchronize: process.env.NODE_ENV !== 'production',
   logging: process.env.NODE_ENV === 'development',
-  // SSL geçici olarak kapatıldı - test için v2
   ssl: false,
 };
 
