@@ -14,6 +14,7 @@ import { TOKEN_GENERATOR } from '@core/services/token-generator.interface';
 
 // Presentation
 import { AuthController, UsersController, PostsController } from '@presentation/controllers';
+import { HealthController } from '@presentation/controllers/health.controller';
 import { JwtAuthGuard, RolesGuard } from '@presentation/guards';
 import { AllExceptionsFilter } from '@presentation/filters';
 import { LoggingInterceptor, TransformInterceptor, TimeoutInterceptor } from '@presentation/interceptors';
@@ -55,6 +56,7 @@ import { GetPostByIdHandler } from '@application/posts/queries/get-post-by-id';
     AuthController,
     UsersController,
     PostsController,
+    HealthController, // YENİ EKLENDİ
   ],
   providers: [
     // Logger
