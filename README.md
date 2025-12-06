@@ -1,6 +1,6 @@
 # NestJS Auth API
 
-[![CI/CD Pipeline](https://github.com/yourusername/nestjs-auth-api/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/yourusername/nestjs-auth-api/actions/workflows/ci-cd.yml)
+[![CI/CD Pipeline](https://github.com/keremyilmaz2/nestjs-auth-api/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/keremyilmaz2/nestjs-auth-api/actions/workflows/ci-cd.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Professional NestJS API with **Clean Architecture**, **Repository Pattern**, **Unit of Work**, **JWT Authentication**, **Role-based Access Control**, and **ELK Stack** for centralized logging.
